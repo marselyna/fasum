@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:http/http.dart' as http;
 
 // import 'package:firebase_auth/firebase_auth.dart'
 class AddPostScreen extends StatefulWidget {
@@ -75,7 +76,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     try {
       final model = GenerativeModel(
         model: 'gemini-1.5-pro',
-        apiKey: 'AIzaSyBfQEqac8FUOtyYEVTecV12jYHrqC0pFt8',
+        apiKey: 'AIzaSyDWcfQSiBqRe7IhBf653PdO1obukPEPJvI',
       );
       final imageBytes = await _image!.readAsBytes();
       final content = Content.multi([
