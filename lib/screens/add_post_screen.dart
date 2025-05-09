@@ -76,9 +76,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
       final imageBytes = await _image!.readAsBytes();
       final base64Image = base64Encode(imageBytes);
       const apiKey =
-          'AIzaSyA7HxTArNKnIe1OJA_BMaTzcUKmmeudnPE'; // ganti dengan API key kamu
+          'AIzaSyDpTMSChT_SJ1sdeff1gOD0CvfkhmdkTtY'; 
       const url =
-          'https://generativelanguage.googleapis.com/v1/models/gemini2.0-flash:generateContent?key=$apiKey';
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
       final body = jsonEncode({
         "contents": [
           {
