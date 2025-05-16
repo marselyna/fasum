@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,94 +19,111 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+  String? selectedCategory;
+  List<String> categories = [
+    'Jalan Rusak',
+    'Marka Pudar',
+    'Lampu Mati',
+    'Trotar Rusak',
+    'Rambu Rusak',
+    'Jembatan Rusak',
+    'Sampah Menumpuk',
+    'Saluran Tersumbat',
+    'Sungai Tercemar',
+    'Sampah Sungai',
+    'Pohon Tumbang',
+    'Taman Rusak',
+    'Fasilitas Rusak',
+    'Pipa Bocor',
+    'Vandalisme',
+    'Banjir',
+    'Lainnya',
+  ];
+
+  String formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+    if (diff.inSeconds < 60) {
+      return '${diff.inSeconds}secs ago';
+    } else if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}mins ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}hrs ago';
+    } else if (diff.inDays < 48) {
+      return '${diff.inDays}1 day ago';
+    } else {
+      return DateFormat('dd/MM/yyyy').format(dateTime);
+    }
   }
-}
 
-String? selectedCategory;
-
-String formatTime(DateTime dateTime) {
-  final now = DateTime.now();
-  final diff = now.difference(dateTime);
-  if (diff.inSeconds < 60) {
-    return '${diff.inSeconds} secs ago';
-  } else if (diff.inMinutes < 60) {
-    return '${diff.inMinutes} mins ago';
-  } else if (diff.inHours < 24) {
-    return '${diff.inHours} hrs ago';
-  } else if (diff.inHours < 48) {
-    return '1 day ago';
-  } else {
-    return DateFormat('dd/MM/yyyy').format(dateTime);
+  Future<void> signOut() async {
+    await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const SignInScreen()),
+      (route) => false,
+    );
   }
-}
 
-Future<void> signOut() async {
-  await FirebaseAuth.instance.signOut();
-  if (!mounted) return;
-  Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(builder: (context) => const SignInScreen()),
-    (route) => false,
-  );
-}
-
-void _showCategoryFilter() async {
-  final result = await showModalBottomSheet<String?>(
-    context: context,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ), //RoundedRectangleBorder
-    builder: (context) {
-      var categories;
-      return SafeArea(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.75,
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 24),
-            children: [
-              ListTile(
-                leading: const Icon(Icons.clear),
-                title: const Text('Semua Kategori'),
-                onTap: () => Navigator.pop(context, null),
-              ),
-              const Divider(),
-              ...categories.map(
-                (category) => ListTile(
-                  title: Text(category),
-                  trailing:
-                      selectedCategory == category
-                          ? Icon(
-                            Icons.check,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                          : null,
-                  onTap: () => Navigator.pop(context, category),
+  void _showCategoryFilter() async {
+    final result = await showModalBottomSheet<String?>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.75,
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 24),
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.clear),
+                  title: const Text('Semua Kategori'),
+                  onTap:
+                      () => Navigator.pop(
+                        context,
+                        null,
+                      ), // Null untuk memilih semua kategori
                 ),
-              ),
-            ],
+                const Divider(),
+                ...categories.map(
+                  (category) => ListTile(
+                    title: Text(category),
+                    trailing:
+                        selectedCategory == category
+                            ? Icon(
+                              Icons.check,
+                              color: Theme.of(context).colorScheme.primary,
+                            )
+                            : null,
+                    onTap: () => Navigator.pop(context, category),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-
-
-  if (result != null) {
-    setState(() {
-      selectedCategory = result; // set kategori dipilih atau null untuk semua
-    });
-  } else {
-    setState(() {
-      selectedCategory = null;
-    });
+        );
+      },
+    );
+    if (result != null) {
+      setState(() {
+        selectedCategory =
+            result; // Set kategori yang dipilih atau null untuk Semua Kategori
+      });
+    } else {
+      // Jika result adalah null, berarti memilih Semua Kategori
+      setState(() {
+        selectedCategory =
+            null; // Reset ke null untuk menampilkan semua kategori
+      });
+    }
   }
-}
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -123,11 +140,6 @@ void _showCategoryFilter() async {
             onPressed: () {},
             icon: const Icon(Icons.filter_list),
             tooltip: 'Filter kategori',
-          ),
-          IconButton(
-            onPressed: _showCategoryFilter,
-            icon: const Icon(Icons.filter_list),
-            tooltip: 'Filter Kategori',
           ),
           // IconButton(
           //   onPressed: () {
@@ -219,7 +231,7 @@ void _showCategoryFilter() async {
                                 ),
                               ),
                               Text(
-                                formatTime(createdAt),
+                                category,
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,
