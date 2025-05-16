@@ -1,10 +1,11 @@
 import 'dart:convert';
-
+import 'dart:ffi';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fasum/screens/sign_in_screen.dart';
 import 'package:fasum/screens/add_post_screen.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,7 +19,93 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? selectedCategory;
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+}
+
+String? selectedCategory;
+
+String formatTime(DateTime dateTime) {
+  final now = DateTime.now();
+  final diff = now.difference(dateTime);
+  if (diff.inSeconds < 60) {
+    return '${diff.inSeconds} secs ago';
+  } else if (diff.inMinutes < 60) {
+    return '${diff.inMinutes} mins ago';
+  } else if (diff.inHours < 24) {
+    return '${diff.inHours} hrs ago';
+  } else if (diff.inHours < 48) {
+    return '1 day ago';
+  } else {
+    return DateFormat('dd/MM/yyyy').format(dateTime);
+  }
+}
+
+Future<void> signOut() async {
+  await FirebaseAuth.instance.signOut();
+  if (!mounted) return;
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(builder: (context) => const SignInScreen()),
+    (route) => false,
+  );
+}
+
+void _showCategoryFilter() async {
+  final result = await showModalBottomSheet<String?>(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ), //RoundedRectangleBorder
+    builder: (context) {
+      var categories;
+      return SafeArea(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 24),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.clear),
+                title: const Text('Semua Kategori'),
+                onTap: () => Navigator.pop(context, null),
+              ),
+              const Divider(),
+              ...categories.map(
+                (category) => ListTile(
+                  title: Text(category),
+                  trailing:
+                      selectedCategory == category
+                          ? Icon(
+                            Icons.check,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                          : null,
+                  onTap: () => Navigator.pop(context, category),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+
+  if (result != null) {
+    setState(() {
+      selectedCategory = result; // set kategori dipilih atau null untuk semua
+    });
+  } else {
+    setState(() {
+      selectedCategory = null;
+    });
+  }
+}
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,6 +123,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {},
             icon: const Icon(Icons.filter_list),
             tooltip: 'Filter kategori',
+          ),
+          IconButton(
+            onPressed: _showCategoryFilter,
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Filter Kategori',
           ),
           // IconButton(
           //   onPressed: () {
@@ -127,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Text(
-                                category,
+                                formatTime(createdAt),
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,
